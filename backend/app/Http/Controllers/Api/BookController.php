@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BookRequest;
 use App\Models\Book;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BookController extends Controller
 {
@@ -15,9 +17,16 @@ class BookController extends Controller
 
     public function store(BookRequest $request)
     {
-        $book = Book::create($request->validated());
+    $book = Book::create($request->validated());
 
-        return response()->json(['message' => 'Buku berhasil ditambahkan', 'data' => $book], 201);
+    Log::info('Buku baru disimpan', [
+        'aksi'    => 'book.create',
+        'user_id' => $request->user()->id,
+        'book_id' => $book->id,
+        'stok'    => $book->stock,
+    ]);
+
+    return response()->json(['message' => 'Buku berhasil ditambahkan', 'data' => $book], 201);
     }
 
     public function show(Book $book)
@@ -27,15 +36,27 @@ class BookController extends Controller
 
     public function update(BookRequest $request, Book $book)
     {
-        $book->update($request->validated());
+    $book->update($request->validated());
 
-        return response()->json(['message' => 'Buku berhasil diubah', 'data' => $book]);
+    Log::info('Data buku diubah', [
+        'aksi'    => 'book.update',
+        'user_id' => $request->user()->id,
+        'book_id' => $book->id,
+    ]);
+
+    return response()->json(['message' => 'Buku berhasil diubah', 'data' => $book]);
     }
 
-    public function destroy(Book $book)
+    public function destroy(Request $request, Book $book)
     {
-        $book->delete();
+    $book->delete();
 
-        return response()->json(['message' => 'Buku berhasil dihapus']);
+    Log::info('Buku dihapus', [
+        'aksi'    => 'book.delete',
+        'user_id' => $request->user()->id,
+        'book_id' => $book->id,
+    ]);
+
+    return response()->json(['message' => 'Buku berhasil dihapus']);
     }
 }
