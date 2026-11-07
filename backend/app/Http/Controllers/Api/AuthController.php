@@ -6,27 +6,48 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
     public function login(Request $request)
-    {
-        $data = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required'],
+{
+    $data = $request->validate([
+        'email'    => ['required', 'email'],
+        'password' => ['required'],
+    ]);
+
+    $user = User::where('email', $data['email'])->first();
+
+    if (! $user) {
+        Log::warning('Login gagal: akun tidak ditemukan', [
+            'aksi'   => 'auth.login',
+            'alasan' => 'akun_tidak_ditemukan',
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        return response()->json(['message' => 'Email atau password salah'], 401);
+    }
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
-            return response()->json(['message' => 'Email atau password salah'], 401);
-        }
-
-        return response()->json([
-            'message' => 'Login berhasil',
-            'token'   => $user->createToken('api-token')->plainTextToken,
-            'user'    => $user,
+    if (! Hash::check($data['password'], $user->password)) {
+        Log::warning('Login gagal: password tidak cocok', [
+            'aksi'    => 'auth.login',
+            'user_id' => $user->id,
+            'alasan'  => 'password_salah',
         ]);
+
+        return response()->json(['message' => 'Email atau password salah'], 401);
+    }
+
+    Log::info('Login berhasil', [
+        'aksi'    => 'auth.login',
+        'user_id' => $user->id,
+    ]);
+
+    return response()->json([
+        'message' => 'Login berhasil',
+        'token'   => $user->createToken('api-token')->plainTextToken,
+        'user'    => $user,
+    ]);
     }
 
     public function logout(Request $request)
