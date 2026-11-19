@@ -44,7 +44,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     healthcheck:
       test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8000/health') === false ? 1 : 0);"]
       interval: 10s
