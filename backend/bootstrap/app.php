@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Middleware\ForceJsonResponse;
 use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MetricsController;
+use App\Http\Middleware\CatatMetrik;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,20 +17,19 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
         then: function () {
-        Route::get('/health', HealthController::class);
+            Route::get('/health', HealthController::class);
+            Route::get('/metrics', MetricsController::class);
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(CatatMetrik::class);
+
         $middleware->api(prepend: [
-        ForceJsonResponse::class,
-        
+            ForceJsonResponse::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-    $exceptions->shouldRenderJsonWhen(fn (Request $request, Throwable $e) => true);
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+            fn (Request $request, Throwable $e) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();

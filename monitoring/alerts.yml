@@ -1,0 +1,11 @@
+groups:
+  - name: aplikasi
+    rules:
+      - alert: LayananMati
+        expr: up{job="aplikasi"} == 0
+        for: 1m
+        labels:
+          severity: kritis
+        annotations:
+          summary: "Backend katalog buku tidak bisa ditarik oleh Prometheus"
+          action: "Jalankan docker compose ps, lalu docker compose logs backend untuk melihat penyebabnya"

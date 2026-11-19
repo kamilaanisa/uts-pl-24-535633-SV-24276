@@ -67,7 +67,7 @@ jobs:
           DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
           EOF
-          docker compose up -d --build
+          docker compose up -d --build db backend frontend
           for i in $(seq 1 30); do
             code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/books || true)
             [ "$code" = "401" ] && break
